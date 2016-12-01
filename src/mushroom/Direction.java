@@ -1,3 +1,4 @@
+package mushroom;
 /**
  * CIS 120 Game HW
  * (c) University of Pennsylvania

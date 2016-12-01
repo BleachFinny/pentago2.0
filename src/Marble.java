@@ -1,12 +1,16 @@
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
+import javax.swing.JComponent;
 
 /**
  * 
  * @author ericzeng
  *
  */
-public class Marble {
+public class Marble extends JComponent {
     private Color c;
 
     public Marble(Color color) {
@@ -34,18 +38,19 @@ public class Marble {
     }
 
     /**
-     * Draws the marble with x y as the center
+     * Draws the marble with x y top left corner
      * 
      * @param g
      *            graphics
      * @param x
-     *            x center
+     *            x top left
      * @param y
-     *            y center
+     *            y top left
      * @param diameter
      *            diameter of circular marble
      */
     public void draw(Graphics g, int x, int y, int diameter) {
-        g.drawOval(x - diameter, y - diameter, diameter, diameter);
+        g.setColor(c);
+        g.drawOval(x, y, diameter, diameter);
     }
 }
