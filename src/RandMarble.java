@@ -14,8 +14,8 @@ public class RandMarble extends Marble {
      * 
      * @param color
      */
-    public RandMarble(Color color) {
-        super(color);
+    public RandMarble(Color color, int s) {
+        super(color, s);
     }
 
     /**
