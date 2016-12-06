@@ -2,30 +2,135 @@
 // imports necessary libraries for Java swing
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+
 import javax.swing.*;
 
 /**
  * Game Main class that specifies the frame and widgets of the GUI
  */
 public class Pentago implements Runnable {
-    public void run() {
-        // NOTE : recall that the 'final' keyword notes immutability
-        // even for local variables.
 
-        // top-level frame for everything
-        final JFrame frame = new JFrame("Pentago 2.0");
-        frame.setLocation(300, 300);
-        final JLabel status = new JLabel("Running...");
+    // Networking socket and read/write
+    Socket connection;
+
+    // game frame for the main game
+    final JFrame gameFrame = new JFrame("Pentago 2.0");
+
+    // networking view model
+    final JFrame netFrame = new JFrame("Pentago 2.0");
+
+    public void run() {
+
+        // beings game by asking user for client or server mode
+        network();
+
+        netFrame.setLocation(100, 100);
+        netFrame.setSize(300, 100);
+        netFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Start game
+        netFrame.setVisible(true);
+    }
+
+    /**
+     * Runs the networking for this game
+     */
+    private void network() {
+        netFrame.setLayout(new BoxLayout(netFrame.getContentPane(), BoxLayout.Y_AXIS));
+
+        // status panel
+        final JPanel netPanel = new JPanel();
+        netPanel.setLayout(new BoxLayout(netPanel, BoxLayout.X_AXIS));
+        final JLabel status = new JLabel();
+        status.setText("Choose to be a client or host");
+        netPanel.add(Box.createHorizontalGlue());
+        netPanel.add(status);
+        netPanel.add(Box.createHorizontalGlue());
+        netFrame.add(netPanel);
+
+        // button panel
+        final JPanel butPanel = new JPanel();
+        butPanel.setLayout(new BoxLayout(butPanel, BoxLayout.X_AXIS));
+        butPanel.add(Box.createHorizontalGlue());
+        netFrame.add(butPanel);
+
+        final JButton host = new JButton();
+        host.setText("Host");
+        host.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // creates a new networking thread to check for a client
+                Runnable network = new Runnable() {
+                    @Override
+                    public void run() {
+                        ServerSocket server = null;
+                        try {
+                            server = new ServerSocket(21212);
+                            status.setText("Connecting...");
+                            connection = server.accept();
+                            status.setText("Connected!");
+                            gameFrame.setVisible(true);
+                            netFrame.setVisible(false);
+                            // opens the board once connections have been
+                            // established
+                            game(Color.WHITE);
+                        } catch (IOException ex) {
+                            status.setText("Failed to connect, try again");
+                        } finally {
+                            try {
+                                server.close();
+                            } catch (Exception ex) {
+                                // OK, continue if server is null
+                            }
+                        }
+                    }
+                };
+                new Thread(network).start();
+            }
+        });
+        butPanel.add(host);
+
+        final JButton client = new JButton();
+        client.setText("Client");
+        client.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    connection = new Socket("localhost", 21212);
+                    gameFrame.setVisible(true);
+                    netFrame.setVisible(false);
+                    // opens the board once connections have been established
+                    game(Color.BLACK);
+                } catch (IOException ex) { // change this
+                    status.setText("Failed to connect as a client, try again");
+                }
+            }
+        });
+        butPanel.add(client);
+        butPanel.add(Box.createHorizontalGlue());
+    }
+
+    /**
+     * Runs the main game
+     * 
+     * @param isHost
+     *            is this player the host?
+     */
+    private void game(Color col) {
+        // status/turn indicator
+        final JLabel status = new JLabel("Welcome");
 
         // Main playing area
         Player p1 = new Player(0, "p1", 0, 0, 0, 0, 0);
-        Player p2 = new Player(1, "p2", 0, 0, 0, 0, 1);
-        final Board board = new Board(p1, p2, status);
-        frame.add(board, BorderLayout.CENTER);
+        final Board board = new Board(p1, status, connection, col);
+        gameFrame.add(board, BorderLayout.CENTER);
 
         // top panel
         final JPanel n_panel = new JPanel();
-        frame.add(n_panel, BorderLayout.NORTH);
+        gameFrame.add(n_panel, BorderLayout.NORTH);
         n_panel.setLayout(new BoxLayout(n_panel, BoxLayout.X_AXIS));
 
         final JButton cw1 = new JButton();
@@ -54,7 +159,7 @@ public class Pentago implements Runnable {
 
         // bottom panel
         final JPanel s_panel = new JPanel();
-        frame.add(s_panel, BorderLayout.SOUTH);
+        gameFrame.add(s_panel, BorderLayout.SOUTH);
         s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.X_AXIS));
 
         final JButton ccw3 = new JButton();
@@ -68,20 +173,21 @@ public class Pentago implements Runnable {
         s_panel.add(ccw3);
         s_panel.add(Box.createHorizontalGlue());
 
-        // Note here that when we add an action listener to the reset
-        // button, we define it as an anonymous inner class that is
-        // an instance of ActionListener with its actionPerformed()
-        // method overridden. When the button is pressed,
-        // actionPerformed() will be called.
-        final JButton reset = new JButton("Reset");
-        reset.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                final Board b = new Board(p1, p2, status);
-                frame.add(b, BorderLayout.CENTER);
-            }
-        });
-        s_panel.add(reset);
-        s_panel.add(Box.createHorizontalGlue());
+        // // Note here that when we add an action listener to the reset
+        // // button, we define it as an anonymous inner class that is
+        // // an instance of ActionListener with its actionPerformed()
+        // // method overridden. When the button is pressed,
+        // // actionPerformed() will be called.
+        // final JButton reset = new JButton("Reset");
+        // reset.addActionListener(new ActionListener() {
+        // public void actionPerformed(ActionEvent e) {
+        // // TODO: fix me
+        // final Board b = new Board(p1, p2, status, connection);
+        // gameFrame.add(b, BorderLayout.CENTER);
+        // }
+        // });
+        // s_panel.add(reset);
+        // s_panel.add(Box.createHorizontalGlue());
 
         final JButton cw4 = new JButton();
         cw4.setText("CW");
@@ -95,7 +201,7 @@ public class Pentago implements Runnable {
 
         // left panel
         final JPanel w_panel = new JPanel();
-        frame.add(w_panel, BorderLayout.WEST);
+        gameFrame.add(w_panel, BorderLayout.WEST);
         w_panel.setLayout(new BoxLayout(w_panel, BoxLayout.Y_AXIS));
 
         final JButton ccw1 = new JButton();
@@ -122,7 +228,7 @@ public class Pentago implements Runnable {
 
         // right panel
         final JPanel e_panel = new JPanel();
-        frame.add(e_panel, BorderLayout.EAST);
+        gameFrame.add(e_panel, BorderLayout.EAST);
         e_panel.setLayout(new BoxLayout(e_panel, BoxLayout.Y_AXIS));
 
         final JButton cw2 = new JButton();
@@ -147,13 +253,16 @@ public class Pentago implements Runnable {
         });
         e_panel.add(ccw4);
 
-        // Put the frame on the screen
-        frame.pack();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
+        // setup frames' properties
+        if (col == Color.WHITE) {
+            gameFrame.setTitle("Pentago 2.0 - (user) - White");
+        } else if (col == Color.BLACK) {
+            gameFrame.setTitle("Pentago 2.0 - (user) - Black");
+        }
 
-        // Start game
-        // court.reset();
+        gameFrame.setLocation(100, 100);
+        gameFrame.pack();
+        gameFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
     /*

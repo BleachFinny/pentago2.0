@@ -30,6 +30,7 @@ public class Player {
     // accessor methods
 
     public int getId() {
+        // TODO: get rid of me
         return id;
     }
 
