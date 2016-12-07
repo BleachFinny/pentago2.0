@@ -57,11 +57,30 @@ public class Pentago implements Runnable {
         butPanel.add(Box.createHorizontalGlue());
         netFrame.add(butPanel);
 
+        final JButton client = new JButton();
+        client.setText("Client");
+        client.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    connection = new Socket("localhost", 21212);
+                    gameFrame.setVisible(true);
+                    netFrame.setVisible(false);
+                    // opens the board once connection has been established
+                    game(Color.BLACK);
+                } catch (IOException ex) { // change this
+                    status.setText("Failed to connect as a client, try again");
+                }
+            }
+        });
+
         final JButton host = new JButton();
         host.setText("Host");
         host.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                client.setEnabled(false);
+                host.setEnabled(false);
                 // creates a new networking thread to check for a client
                 Runnable network = new Runnable() {
                     @Override
@@ -69,16 +88,18 @@ public class Pentago implements Runnable {
                         ServerSocket server = null;
                         try {
                             server = new ServerSocket(21212);
-                            status.setText("Connecting...");
+                            status.setText("Waiting for client...");
                             connection = server.accept();
                             status.setText("Connected!");
                             gameFrame.setVisible(true);
                             netFrame.setVisible(false);
-                            // opens the board once connections have been
+                            // opens the board once connection has been
                             // established
                             game(Color.WHITE);
                         } catch (IOException ex) {
-                            status.setText("Failed to connect, try again");
+                            status.setText("Failed to instantiate server, try again");
+                            client.setEnabled(true);
+                            host.setEnabled(true);
                         } finally {
                             try {
                                 server.close();
@@ -92,23 +113,6 @@ public class Pentago implements Runnable {
             }
         });
         butPanel.add(host);
-
-        final JButton client = new JButton();
-        client.setText("Client");
-        client.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    connection = new Socket("localhost", 21212);
-                    gameFrame.setVisible(true);
-                    netFrame.setVisible(false);
-                    // opens the board once connections have been established
-                    game(Color.BLACK);
-                } catch (IOException ex) { // change this
-                    status.setText("Failed to connect as a client, try again");
-                }
-            }
-        });
         butPanel.add(client);
         butPanel.add(Box.createHorizontalGlue());
     }
@@ -124,7 +128,8 @@ public class Pentago implements Runnable {
         final JLabel status = new JLabel("Welcome");
 
         // Main playing area
-        Player p1 = new Player(0, "p1", 0, 0, 0, 0, 0);
+        Player p1 = new Player(0, "p1", 0, 0, 0, 0, 0); // TODO: implement
+                                                        // player stats
         final Board board = new Board(p1, status, connection, col);
         gameFrame.add(board, BorderLayout.CENTER);
 
@@ -173,12 +178,8 @@ public class Pentago implements Runnable {
         s_panel.add(ccw3);
         s_panel.add(Box.createHorizontalGlue());
 
-        // // Note here that when we add an action listener to the reset
-        // // button, we define it as an anonymous inner class that is
-        // // an instance of ActionListener with its actionPerformed()
-        // // method overridden. When the button is pressed,
-        // // actionPerformed() will be called.
-        // final JButton reset = new JButton("Reset");
+        // // Return button
+        // final JButton reset = new JButton("Return");
         // reset.addActionListener(new ActionListener() {
         // public void actionPerformed(ActionEvent e) {
         // // TODO: fix me

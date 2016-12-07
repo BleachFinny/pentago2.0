@@ -1,8 +1,6 @@
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 
 import javax.swing.JComponent;
 
@@ -38,28 +36,6 @@ public class Marble extends JComponent {
      */
     public void setColor(Color color) {
         this.c = color;
-    }
-
-    /**
-     * Draws the marble with x y top left corner
-     * 
-     * @param g
-     *            graphics
-     * @param x
-     *            x top left
-     * @param y
-     *            y top left
-     * @param diameter
-     *            diameter of circular marble
-     */
-    public void draw(Graphics g, int x, int y) {
-        if (c == null) {
-            g.setColor(Color.BLACK);
-            g.drawOval(x, y, SIZE, SIZE);
-        } else {
-            g.setColor(c);
-            g.fillOval(x, y, SIZE, SIZE);
-        }
     }
 
     @Override

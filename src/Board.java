@@ -80,7 +80,7 @@ public class Board extends JPanel {
             @Override
             public void run() {
                 try {
-                    while (true) {
+                    while (turn >= -1) {
                         process(read.readLine());
                     }
                 } catch (IOException e) {
