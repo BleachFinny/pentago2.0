@@ -137,6 +137,7 @@ public class Board extends JPanel {
                                 String location;
                                 if (turn % 4 == 0 && color == Color.WHITE) {
                                     m.setColor(color);
+                                    player.incMarblePlacements();
                                     location = findBlockXY(m);
                                     if (location.equals("-1")) {
                                         status.setText("COMM ERROR");
@@ -147,6 +148,7 @@ public class Board extends JPanel {
                                     repaint();
                                 } else if (turn % 4 == 2 && color == Color.BLACK) {
                                     m.setColor(color);
+                                    player.incMarblePlacements();
                                     location = findBlockXY(m);
                                     if (location.equals("-1")) {
                                         status.setText("COMM ERROR");
@@ -243,10 +245,12 @@ public class Board extends JPanel {
             switch (direction) {
             case "CW":
                 RotateButton.rotateCW(block);
+                player.incBlockTurns();
                 write.println(direction + " " + b);
                 break;
             case "CCW":
                 RotateButton.rotateCCW(block);
+                player.incBlockTurns();
                 write.println(direction + " " + b);
                 break;
             default:
@@ -295,6 +299,13 @@ public class Board extends JPanel {
             status.setText("Player 2 (Black) rotate a block");
             break;
         case -1:
+            if (color == c) {
+                player.incGamesWon();
+            } else {
+                // ties are counted as losses
+                player.incGamesLost();
+            }
+
             if (c == Color.WHITE) {
                 status.setText("White Wins!");
             } else if (c == Color.BLACK) {
