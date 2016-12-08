@@ -3,9 +3,8 @@
  * @author ericzeng
  *
  */
-public class Player {
+public class Player implements Comparable {
     // data record of player information and statistics
-    private final int id;
     private String name;
 
     private int gamesWon;
@@ -14,25 +13,15 @@ public class Player {
     private int marblePlacements;
     private int blockTurns;
 
-    // rank 1 is stored as 0
-    private int rank;
-
-    public Player(int i, String na, int gw, int gl, int mp, int bt, int r) {
-        id = i;
+    public Player(String na, int gw, int gl, int mp, int bt) {
         name = na;
         gamesWon = gw;
         gamesLost = gl;
         marblePlacements = mp;
         blockTurns = bt;
-        rank = r;
     }
 
     // accessor methods
-
-    public int getId() {
-        // TODO: get rid of me
-        return id;
-    }
 
     public String getName() {
         return name;
@@ -52,10 +41,6 @@ public class Player {
 
     public int getBlockTurns() {
         return blockTurns;
-    }
-
-    public int getRank() {
-        return rank;
     }
 
     // setter and incrementing methods
@@ -80,10 +65,6 @@ public class Player {
         blockTurns++;
     }
 
-    public void setRank(int r) {
-        rank = r;
-    }
-
     /**
      * equals compares id of this player to player o. If o is not a player, this
      * will return false
@@ -94,8 +75,16 @@ public class Player {
     @Override
     public boolean equals(Object o) {
         if (this.getClass().isInstance(o)) {
-            return this.getId() == ((Player) o).getId();
+            return this.getName() == ((Player) o).getName();
         }
         return false;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if (this.getClass().isInstance(o)) {
+            return this.getName().compareTo(((Player) o).getName());
+        }
+        return 0;
     }
 }

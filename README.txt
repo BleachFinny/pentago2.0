@@ -56,3 +56,6 @@ PennKey: ericzeng
 
   Multithreading for network operations
   http://docs.oracle.com/javase/tutorial/essential/concurrency/index.html
+  
+  TextFields for login
+  https://docs.oracle.com/javase/tutorial/uiswing/components/textfield.html

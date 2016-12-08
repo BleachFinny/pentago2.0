@@ -2,9 +2,16 @@
 // imports necessary libraries for Java swing
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.NumberFormat;
+import java.util.TreeMap;
 
 import javax.swing.*;
 
@@ -16,6 +23,12 @@ public class Pentago implements Runnable {
     // Networking socket and read/write
     Socket connection;
 
+    // Player or user
+    private Player p1;
+
+    // game frame for the main game
+    final JFrame loginFrame = new JFrame("Pentago 2.0");
+
     // game frame for the main game
     final JFrame gameFrame = new JFrame("Pentago 2.0");
 
@@ -25,14 +38,157 @@ public class Pentago implements Runnable {
     public void run() {
 
         // beings game by asking user for client or server mode
+        login();
         network();
+
+        // Start game
+        loginFrame.setVisible(true);
+        loginFrame.setLocation(100, 100);
+        loginFrame.pack();
+        // loginFrame.setSize(900, 300);
+        loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         netFrame.setLocation(100, 100);
         netFrame.setSize(300, 100);
         netFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
 
-        // Start game
-        netFrame.setVisible(true);
+    /**
+     * Runs the login portion of the application
+     */
+    private void login() {
+        loginFrame.setLayout(new BoxLayout(loginFrame.getContentPane(), BoxLayout.Y_AXIS));
+        TreeMap<Player, String> users = new TreeMap<Player, String>();
+        BufferedReader in = null;
+        try {
+            in = new BufferedReader(new FileReader("stats.txt"));
+            String next = in.readLine();
+            while (next != null) {
+                next = next.trim();
+                String[] args = next.split(" ");
+                if (args.length != 6) {
+                    throw new NumberFormatException("");
+                }
+                Player addMe = new Player(args[0], Integer.parseInt(args[2]),
+                        Integer.parseInt(args[3]), Integer.parseInt(args[4]),
+                        Integer.parseInt(args[5]));
+                users.put(addMe, args[1]);
+                next = in.readLine();
+            }
+        } catch (NumberFormatException e) {
+            final JLabel error = new JLabel(
+                    "File formatting is wrong! Please correct stats.txt or contact the developer!");
+            loginFrame.add(error);
+            return;
+        } catch (FileNotFoundException e) {
+            final JLabel error = new JLabel(
+                    "stats.txt is missing! Please replace it or contact the developer!");
+            loginFrame.add(error);
+            return;
+        } catch (IOException e) {
+            final JLabel error = new JLabel(
+                    "Error in loading users! Please contact the developer!");
+            loginFrame.add(error);
+            return;
+        } finally {
+            try {
+                in.close();
+            } catch (Exception e) {
+                // continue
+            }
+        }
+
+        final JPanel loginPanel = new JPanel();
+        loginPanel.setLayout(new BoxLayout(loginPanel, BoxLayout.Y_AXIS));
+        final JLabel subTitle = new JLabel("Login, create an account, or read the rules");
+        final JTextField username = new JTextField();
+        username.setToolTipText("Username");
+        final JPasswordField password = new JPasswordField();
+        password.setToolTipText("Password");
+        loginPanel.add(subTitle);
+        loginPanel.add(username);
+        loginPanel.add(password);
+
+        final JPanel userButtons = new JPanel();
+        final JButton loginButton = new JButton("Login");
+        loginButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String name = username.getText();
+                char[] pass = password.getPassword();
+                String passString = "";
+                for (char c : pass) {
+                    passString = passString + c;
+                }
+                for (Player p : users.keySet()) {
+                    if (p.getName().equals(name) && users.get(p).equals(passString)) {
+                        p1 = p;
+                        userButtons.setVisible(false);
+                        loginFrame.setVisible(false);
+                        netFrame.setTitle("Pentago 2.0 - " + p1.getName());
+                        netFrame.setVisible(true);
+                        return;
+                    }
+                }
+                username.setText("");
+                password.setText("");
+                subTitle.setText("Username/password not found, try again");
+            }
+        });
+        final JButton createButton = new JButton("New User");
+        createButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String name = username.getText();
+                char[] pass = password.getPassword();
+                String passString = "";
+                for (char c : pass) {
+                    passString = passString + c;
+                }
+                // valid string check
+                if (name.contains(" ") || name.length() == 0 || passString.contains(" ")
+                        || passString.length() == 0) {
+                    username.setText("");
+                    password.setText("");
+                    subTitle.setText("No spaces in username/password allowed, try again");
+                    return;
+                }
+                // already exists check
+                for (Player p : users.keySet()) {
+                    if (p.getName().equals(name)) {
+                        username.setText("");
+                        password.setText("");
+                        subTitle.setText("Username/password already exists, try again");
+                        return;
+                    }
+                }
+                // add user if passes check
+                BufferedWriter write = null;
+                try {
+                    write = new BufferedWriter(new FileWriter("stats.txt", true));
+                    write.write(name + " " + passString + " 0 0 0 0\n");
+                    users.put(new Player(name, 0, 0, 0, 0), passString);
+                } catch (IOException ex) {
+                    final JLabel error = new JLabel(
+                            "Error in loading users! Please contact the developer!");
+                    loginFrame.add(error);
+                } finally {
+                    try {
+                        write.close();
+                    } catch (Exception ex) {
+                        // continue
+                    }
+                }
+                username.setText("");
+                password.setText("");
+                subTitle.setText("Username/password registered, login to continue");
+            }
+        });
+        userButtons.add(loginButton);
+        userButtons.add(createButton);
+
+        loginFrame.add(loginPanel);
+        loginFrame.add(userButtons);
     }
 
     /**
@@ -44,8 +200,7 @@ public class Pentago implements Runnable {
         // status panel
         final JPanel netPanel = new JPanel();
         netPanel.setLayout(new BoxLayout(netPanel, BoxLayout.X_AXIS));
-        final JLabel status = new JLabel();
-        status.setText("Choose to be a client or host");
+        final JLabel status = new JLabel("Choose to be a client or host");
         netPanel.add(Box.createHorizontalGlue());
         netPanel.add(status);
         netPanel.add(Box.createHorizontalGlue());
@@ -128,8 +283,6 @@ public class Pentago implements Runnable {
         final JLabel status = new JLabel("Welcome");
 
         // Main playing area
-        Player p1 = new Player(0, "p1", 0, 0, 0, 0, 0); // TODO: implement
-                                                        // player stats
         final Board board = new Board(p1, status, connection, col);
         gameFrame.add(board, BorderLayout.CENTER);
 
@@ -256,9 +409,9 @@ public class Pentago implements Runnable {
 
         // setup frames' properties
         if (col == Color.WHITE) {
-            gameFrame.setTitle("Pentago 2.0 - (user) - White");
+            gameFrame.setTitle("Pentago 2.0 - " + p1.getName() + " - White");
         } else if (col == Color.BLACK) {
-            gameFrame.setTitle("Pentago 2.0 - (user) - Black");
+            gameFrame.setTitle("Pentago 2.0 - " + p1.getName() + " - Black");
         }
 
         gameFrame.setLocation(100, 100);

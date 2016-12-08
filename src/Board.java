@@ -80,8 +80,17 @@ public class Board extends JPanel {
             @Override
             public void run() {
                 try {
-                    while (turn >= -1) {
-                        process(read.readLine());
+                    while (true) {
+                        String command = read.readLine();
+                        if (command == null) {
+                            // other user disconnected
+                            if (turn != -1) {
+                                status.setText("Connection issue, game aborted");
+                                turn = -1; // end game
+                            }
+                            break;
+                        }
+                        process(command);
                     }
                 } catch (IOException e) {
                     run(); // keep going
@@ -131,8 +140,9 @@ public class Board extends JPanel {
                                     location = findBlockXY(m);
                                     if (location.equals("-1")) {
                                         status.setText("COMM ERROR");
+                                    } else {
+                                        write.println("WHITE " + location);
                                     }
-                                    write.println("WHITE " + location);
                                     advanceTurn(null);
                                     repaint();
                                 } else if (turn % 4 == 2 && color == Color.BLACK) {
@@ -140,8 +150,9 @@ public class Board extends JPanel {
                                     location = findBlockXY(m);
                                     if (location.equals("-1")) {
                                         status.setText("COMM ERROR");
+                                    } else {
+                                        write.println("BLACK " + location);
                                     }
-                                    write.println("BLACK " + location);
                                     advanceTurn(null);
                                     repaint();
                                 }
