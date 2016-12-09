@@ -87,4 +87,9 @@ public class Player implements Comparable {
         }
         return 0;
     }
+
+    @Override
+    public String toString() {
+        return name + " " + gamesWon + " " + gamesLost + " " + marblePlacements + " " + blockTurns;
+    }
 }

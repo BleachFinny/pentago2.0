@@ -4,13 +4,13 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.text.NumberFormat;
 import java.util.TreeMap;
 
 import javax.swing.*;
@@ -26,6 +26,13 @@ public class Pentago implements Runnable {
     // Player or user
     private Player p1;
 
+    // Map of Users in stat.txt
+    TreeMap<Player, String> users;
+
+    // statistics file
+    // TODO: implement this
+    private String statistics = "stats.txt";
+
     // game frame for the main game
     final JFrame loginFrame = new JFrame("Pentago 2.0");
 
@@ -37,20 +44,50 @@ public class Pentago implements Runnable {
 
     public void run() {
 
-        // beings game by asking user for client or server mode
-        login();
-        network();
+        // beings game with login screen, networking can run in the background
+        // for now
+        final JFrame prompt = new JFrame("Pentago 2.0");
+        prompt.setLayout(new BoxLayout(prompt.getContentPane(), BoxLayout.X_AXIS));
+        prompt.add(Box.createHorizontalGlue());
+        final JPanel promptPanel = new JPanel();
+        promptPanel.setLayout(new BoxLayout(promptPanel, BoxLayout.Y_AXIS));
+        prompt.add(promptPanel);
+        prompt.add(Box.createHorizontalGlue());
+
+        final JLabel instruct = new JLabel("Select player statistics file directory:");
+        promptPanel.add(instruct);
+        final JTextField dir = new JTextField(statistics);
+        promptPanel.add(dir);
+        final JButton enter = new JButton("OK");
+        promptPanel.add(enter);
+        promptPanel.add(Box.createVerticalGlue());
+        ActionListener changeFileAction = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                File trial = new File(dir.getText().trim());
+                if (trial.isFile()) {
+                    statistics = dir.getText().trim();
+
+                    // begin login, and networking in background
+                    prompt.dispose();
+                    login();
+                    network();
+                } else {
+                    instruct.setText("Invalid file path/name, try again");
+                }
+            }
+        };
+        enter.addActionListener(changeFileAction);
+        dir.addActionListener(changeFileAction);
+
+        prompt.setLocation(200, 200);
+        prompt.setSize(300, 100);
+        prompt.setResizable(true);
+        prompt.setVisible(true);
 
         // Start game
-        loginFrame.setVisible(true);
-        loginFrame.setLocation(100, 100);
-        loginFrame.pack();
-        // loginFrame.setSize(900, 300);
-        loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        netFrame.setLocation(100, 100);
-        netFrame.setSize(300, 100);
-        netFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        // TODO: fix login gui
+        // TODO: update stats properly/be able to check them
     }
 
     /**
@@ -58,10 +95,11 @@ public class Pentago implements Runnable {
      */
     private void login() {
         loginFrame.setLayout(new BoxLayout(loginFrame.getContentPane(), BoxLayout.Y_AXIS));
-        TreeMap<Player, String> users = new TreeMap<Player, String>();
+
+        users = new TreeMap<Player, String>();
         BufferedReader in = null;
         try {
-            in = new BufferedReader(new FileReader("stats.txt"));
+            in = new BufferedReader(new FileReader(statistics));
             String next = in.readLine();
             while (next != null) {
                 next = next.trim();
@@ -76,13 +114,13 @@ public class Pentago implements Runnable {
                 next = in.readLine();
             }
         } catch (NumberFormatException e) {
-            final JLabel error = new JLabel(
-                    "File formatting is wrong! Please correct stats.txt or contact the developer!");
+            final JLabel error = new JLabel("File formatting is wrong! Please correct " + statistics
+                    + " or contact the developer!");
             loginFrame.add(error);
             return;
         } catch (FileNotFoundException e) {
             final JLabel error = new JLabel(
-                    "stats.txt is missing! Please replace it or contact the developer!");
+                    "statsitics file is missing! Please replace it or contact the developer!");
             loginFrame.add(error);
             return;
         } catch (IOException e) {
@@ -98,74 +136,127 @@ public class Pentago implements Runnable {
             }
         }
 
+        // login instruction line
+        final JPanel title = new JPanel();
+        title.setLayout(new BoxLayout(title, BoxLayout.X_AXIS));
+        title.add(Box.createHorizontalGlue());
+        final JLabel subTitle = new JLabel("Login, create an account, or read the rules");
+        title.add(subTitle);
+        title.add(Box.createHorizontalGlue());
+        loginFrame.add(title);
+
+        // text fields
+        // TODO add labels
         final JPanel loginPanel = new JPanel();
         loginPanel.setLayout(new BoxLayout(loginPanel, BoxLayout.Y_AXIS));
-        final JLabel subTitle = new JLabel("Login, create an account, or read the rules");
         final JTextField username = new JTextField();
         username.setToolTipText("Username");
         final JPasswordField password = new JPasswordField();
         password.setToolTipText("Password");
-        loginPanel.add(subTitle);
         loginPanel.add(username);
         loginPanel.add(password);
 
+        // login or create a new user panel
         final JPanel userButtons = new JPanel();
-        final JButton loginButton = new JButton("Login");
-        loginButton.addActionListener(new ActionListener() {
+
+        // play, check statistics, or log out panel
+        final JPanel controlPanel = new JPanel();
+
+        ActionListener loginAction = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String name = username.getText();
                 char[] pass = password.getPassword();
+                username.setText("");
+                password.setText("");
                 String passString = "";
                 for (char c : pass) {
                     passString = passString + c;
+                    c = ' '; // security erase
                 }
                 for (Player p : users.keySet()) {
                     if (p.getName().equals(name) && users.get(p).equals(passString)) {
                         p1 = p;
+                        loginPanel.setVisible(false);
                         userButtons.setVisible(false);
-                        loginFrame.setVisible(false);
-                        netFrame.setTitle("Pentago 2.0 - " + p1.getName());
-                        netFrame.setVisible(true);
+                        controlPanel.setVisible(true);
+                        subTitle.setText("Welcome!");
                         return;
                     }
                 }
-                username.setText("");
-                password.setText("");
                 subTitle.setText("Username/password not found, try again");
             }
+        };
+        username.addActionListener(loginAction);
+        password.addActionListener(loginAction);
+
+        // continued from controlPanel
+        final JButton statsButton = new JButton("My Stats");
+        statsButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                displayStats();
+            }
         });
+
+        final JButton playButton = new JButton("Play");
+        playButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                loginFrame.setVisible(false);
+                netFrame.setTitle("Pentago 2.0 - " + p1.getName());
+                netFrame.setVisible(true);
+            }
+        });
+
+        final JButton logOutButton = new JButton("Log out");
+        logOutButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                controlPanel.setVisible(false);
+                p1 = null;
+                loginPanel.setVisible(true);
+                userButtons.setVisible(true);
+                subTitle.setText("Logged out!");
+            }
+        });
+        controlPanel.add(statsButton);
+        controlPanel.add(playButton);
+        controlPanel.add(logOutButton);
+
+        // continued from userButtons
+        final JButton loginButton = new JButton("Login");
+        loginButton.addActionListener(loginAction);
         final JButton createButton = new JButton("New User");
         createButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String name = username.getText();
                 char[] pass = password.getPassword();
+                username.setText("");
+                password.setText("");
                 String passString = "";
                 for (char c : pass) {
                     passString = passString + c;
+                    c = ' '; // security erase
                 }
                 // valid string check
                 if (name.contains(" ") || name.length() == 0 || passString.contains(" ")
                         || passString.length() == 0) {
-                    username.setText("");
-                    password.setText("");
                     subTitle.setText("No spaces in username/password allowed, try again");
                     return;
                 }
                 // already exists check
                 for (Player p : users.keySet()) {
                     if (p.getName().equals(name)) {
-                        username.setText("");
-                        password.setText("");
-                        subTitle.setText("Username/password already exists, try again");
+                        subTitle.setText("Username already exists, try again");
                         return;
                     }
                 }
-                // add user if passes check
+                // add user if passes checks
                 BufferedWriter write = null;
                 try {
-                    write = new BufferedWriter(new FileWriter("stats.txt", true));
+                    write = new BufferedWriter(new FileWriter(statistics, true));
                     write.write(name + " " + passString + " 0 0 0 0\n");
                     users.put(new Player(name, 0, 0, 0, 0), passString);
                 } catch (IOException ex) {
@@ -179,8 +270,6 @@ public class Pentago implements Runnable {
                         // continue
                     }
                 }
-                username.setText("");
-                password.setText("");
                 subTitle.setText("Username/password registered, login to continue");
             }
         });
@@ -189,6 +278,59 @@ public class Pentago implements Runnable {
 
         loginFrame.add(loginPanel);
         loginFrame.add(userButtons);
+        loginFrame.add(controlPanel);
+        controlPanel.setVisible(false);
+
+        loginFrame.setLocation(100, 100);
+        loginFrame.setSize(500, 130);
+        loginFrame.setResizable(false);
+        loginFrame.setVisible(true);
+        loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
+
+    /**
+     * Displays the statistics of the current player reference by p1
+     */
+    private void displayStats() {
+        final JFrame displayStats = new JFrame();
+        displayStats.setLayout(new BoxLayout(displayStats.getContentPane(), BoxLayout.X_AXIS));
+        final JPanel categories = new JPanel();
+        categories.setLayout(new BoxLayout(categories, BoxLayout.Y_AXIS));
+        final JPanel values = new JPanel();
+        values.setLayout(new BoxLayout(values, BoxLayout.Y_AXIS));
+
+        final JLabel user = new JLabel("User:");
+        final JLabel name = new JLabel(p1.getName() + "");
+        categories.add(user);
+        values.add(name);
+
+        final JLabel wins = new JLabel("Wins:");
+        final JLabel winval = new JLabel(p1.getGamesWon() + "");
+        categories.add(wins);
+        values.add(winval);
+
+        final JLabel losses = new JLabel("Losses:");
+        final JLabel loseval = new JLabel(p1.getGamesLost() + "");
+        categories.add(losses);
+        values.add(loseval);
+
+        final JLabel marbs = new JLabel("Marbles Placed:");
+        final JLabel marbval = new JLabel(p1.getMarblePlacements() + "");
+        categories.add(marbs);
+        values.add(marbval);
+
+        final JLabel blocks = new JLabel("Blocks Tunred:");
+        final JLabel bval = new JLabel(p1.getBlockTurns() + "");
+        categories.add(blocks);
+        values.add(bval);
+
+        displayStats.add(categories);
+        displayStats.add(values);
+        displayStats.setLocation(200, 200);
+        displayStats.pack();
+        displayStats.setVisible(true);
+        displayStats.setResizable(false);
+        displayStats.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     }
 
     /**
@@ -200,11 +342,16 @@ public class Pentago implements Runnable {
         // status panel
         final JPanel netPanel = new JPanel();
         netPanel.setLayout(new BoxLayout(netPanel, BoxLayout.X_AXIS));
-        final JLabel status = new JLabel("Choose to be a client or host");
+        final JLabel status = new JLabel("Host a game or connect to an IP address as client");
         netPanel.add(Box.createHorizontalGlue());
         netPanel.add(status);
         netPanel.add(Box.createHorizontalGlue());
         netFrame.add(netPanel);
+
+        // IP address field
+        final JTextField ipField = new JTextField("localhost");
+        ipField.setToolTipText("Enter target IP address");
+        netFrame.add(ipField);
 
         // button panel
         final JPanel butPanel = new JPanel();
@@ -212,15 +359,16 @@ public class Pentago implements Runnable {
         butPanel.add(Box.createHorizontalGlue());
         netFrame.add(butPanel);
 
-        final JButton client = new JButton();
+        final JButton client = new JButton("Client");
         client.setText("Client");
         client.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    connection = new Socket("localhost", 21212);
+                    connection = new Socket(ipField.getText().trim(), 21212);
                     gameFrame.setVisible(true);
                     netFrame.setVisible(false);
+                    status.setText("Host a game or connect to an IP address as client");
                     // opens the board once connection has been established
                     game(Color.BLACK);
                 } catch (IOException ex) { // change this
@@ -229,13 +377,13 @@ public class Pentago implements Runnable {
             }
         });
 
-        final JButton host = new JButton();
-        host.setText("Host");
+        final JButton host = new JButton("Host");
         host.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 client.setEnabled(false);
                 host.setEnabled(false);
+                ipField.setEnabled(false);
                 // creates a new networking thread to check for a client
                 Runnable network = new Runnable() {
                     @Override
@@ -245,7 +393,7 @@ public class Pentago implements Runnable {
                             server = new ServerSocket(21212);
                             status.setText("Waiting for client...");
                             connection = server.accept();
-                            status.setText("Connected!");
+                            status.setText("Host a game or connect to an IP address as client");
                             gameFrame.setVisible(true);
                             netFrame.setVisible(false);
                             // opens the board once connection has been
@@ -253,10 +401,11 @@ public class Pentago implements Runnable {
                             game(Color.WHITE);
                         } catch (IOException ex) {
                             status.setText("Failed to instantiate server, try again");
-                            client.setEnabled(true);
-                            host.setEnabled(true);
                         } finally {
                             try {
+                                client.setEnabled(true);
+                                host.setEnabled(true);
+                                ipField.setEnabled(true);
                                 server.close();
                             } catch (Exception ex) {
                                 // OK, continue if server is null
@@ -270,6 +419,11 @@ public class Pentago implements Runnable {
         butPanel.add(host);
         butPanel.add(client);
         butPanel.add(Box.createHorizontalGlue());
+
+        netFrame.setLocation(100, 100);
+        netFrame.setSize(400, 100);
+        netFrame.setResizable(false);
+        netFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
     /**
@@ -331,17 +485,51 @@ public class Pentago implements Runnable {
         s_panel.add(ccw3);
         s_panel.add(Box.createHorizontalGlue());
 
-        // // Return button
-        // final JButton reset = new JButton("Return");
-        // reset.addActionListener(new ActionListener() {
-        // public void actionPerformed(ActionEvent e) {
-        // // TODO: fix me
-        // final Board b = new Board(p1, p2, status, connection);
-        // gameFrame.add(b, BorderLayout.CENTER);
-        // }
-        // });
-        // s_panel.add(reset);
-        // s_panel.add(Box.createHorizontalGlue());
+        // Return button
+        // TODO fix stackoverflow bug
+        final JButton reset = new JButton("Return");
+        reset.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                gameFrame.setVisible(false);
+                loginFrame.setVisible(true);
+                BufferedReader read = null;
+                BufferedWriter write = null;
+                try {
+                    File statsFile = new File(statistics);
+                    File temp = new File("10jas30o2.txt");
+                    read = new BufferedReader(new FileReader(statsFile));
+                    write = new BufferedWriter(new FileWriter(temp));
+                    String next = read.readLine();
+                    while (next != null) {
+                        next = next.trim();
+                        if (next.substring(0, next.indexOf(" ")).equals(p1.getName())) {
+                            String output = p1.toString();
+                            write.write(p1.getName() + " " + users.get(p1)
+                                    + output.substring(output.indexOf(" "), output.length())
+                                    + "\n");
+                            users.replace(p1, users.get(p1));
+                        } else {
+                            write.write(next + "\n");
+                        }
+                        next = read.readLine();
+                    }
+                    statsFile.delete();
+                    temp.renameTo(new File(statistics));
+                } catch (IOException ex) {
+                    // OK
+                } finally {
+                    try {
+                        read.close();
+                        write.close();
+                        connection.close();
+                    } catch (Exception ex) {
+                        // OK
+                    }
+                }
+            }
+        });
+        s_panel.add(reset);
+        s_panel.add(Box.createHorizontalGlue());
 
         final JButton cw4 = new JButton();
         cw4.setText("CW");
@@ -367,7 +555,6 @@ public class Pentago implements Runnable {
             }
         });
         w_panel.add(ccw1);
-
         w_panel.add(Box.createVerticalGlue());
 
         final JButton cw3 = new JButton();
@@ -394,7 +581,6 @@ public class Pentago implements Runnable {
             }
         });
         e_panel.add(cw2);
-
         e_panel.add(Box.createVerticalGlue());
 
         final JButton ccw4 = new JButton();
@@ -416,6 +602,7 @@ public class Pentago implements Runnable {
 
         gameFrame.setLocation(100, 100);
         gameFrame.pack();
+        gameFrame.setResizable(false);
         gameFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 

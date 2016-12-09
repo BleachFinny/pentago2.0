@@ -86,14 +86,23 @@ public class Board extends JPanel {
                             // other user disconnected
                             if (turn != -1) {
                                 status.setText("Connection issue, game aborted");
-                                turn = -1; // end game
+                                // end game and close socket
+                                turn = -1;
+                                try {
+                                    connection.close();
+                                } catch (IOException e) {
+                                    // OK
+                                }
                             }
+                            System.out.println("eek");
                             break;
                         }
-                        process(command);
+                        //process(command);
                     }
                 } catch (IOException e) {
-                    run(); // keep going
+                    if (turn != -1) {
+                        run(); // keep going
+                    }
                 }
             }
         };
@@ -328,7 +337,12 @@ public class Board extends JPanel {
     private void process(String command) {
         if (command == null) {
             turn = -1;
-            status.setText("Connection Issue, game aborted");
+            status.setText("Connection Issue, game aborted!");
+            try {
+                connection.close();
+            } catch (IOException e) {
+                // OK
+            }
             return;
         }
         String[] cmds = command.split(" ");

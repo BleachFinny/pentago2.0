@@ -1,3 +1,6 @@
-b c 0 0 0 0
-ericzeng asdfpieday 0 0 0 0
+b c 0 2 11 11
+a d 0 0 0 0
+ericzeng asdfpieday 2 0 12 11
 allenzeng tao 0 0 0 0
+fasdfasdf eeee 0 0 0 0
+player1 not 0 0 0 0
