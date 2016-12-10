@@ -42,8 +42,11 @@ public class Board extends JPanel {
     // status of game label
     private final JLabel status;
 
+    // Reset button that is shown when game ends
+    private final JButton reset;
+
     // networking socket
-    private final Socket connection;
+    private Socket connection;
     private BufferedReader read;
     private PrintWriter write;
 
@@ -58,9 +61,10 @@ public class Board extends JPanel {
      * @param s
      *            the turn status of the game
      */
-    public Board(Player p, JLabel s, Socket c, Color col) {
+    public Board(Player p, JLabel s, JButton r, Socket c, Color col) {
         player = p;
         status = s;
+        reset = r;
         connection = c;
         color = col;
         try {
@@ -86,24 +90,23 @@ public class Board extends JPanel {
                             // other user disconnected
                             if (turn != -1) {
                                 status.setText("Connection issue, game aborted");
-                                // end game and close socket
+                                reset.setVisible(true);
+                                // end game
                                 turn = -1;
-                                try {
-                                    connection.close();
-                                } catch (IOException e) {
-                                    // OK
-                                }
+                                connection.close();
+                                connection = null;
                             }
-                            // TODO: debug
-                            System.out.println("eek");
                             break;
                         }
-                        process(command);
+                        if (process(command)) {
+                            // stop thread when opponent confirms end game
+                            connection.close();
+                            connection = null;
+                            break;
+                        }
                     }
                 } catch (IOException e) {
-                    if (turn != -1) {
-                        run(); // keep going
-                    }
+                    // if exception, stop thread
                 }
             }
         };
@@ -326,6 +329,8 @@ public class Board extends JPanel {
             } else {
                 status.setText("ERROR: INVALID WIN PLAYER SUGGESTED");
             }
+
+            write.println("WIN");
             break;
         }
     }
@@ -335,35 +340,16 @@ public class Board extends JPanel {
      * 
      * @param command
      *            the update from the other user
+     * @return if the opponents signals a win for either player
      */
-    private void process(String command) {
-        if (command == null) {
-            turn = -1;
-            status.setText("Connection Issue, game aborted!");
-            try {
-                connection.close();
-            } catch (IOException e) {
-                // OK
-            }
-            return;
-        }
+    private boolean process(String command) {
         String[] cmds = command.split(" ");
 
         switch (cmds[0]) {
         case "WIN":
-            turn = -1;
-            switch (cmds[1]) {
-            case "WHITE":
-                status.setText("White Wins!");
-                break;
-            case "BLACK":
-                status.setText("Black Wins!");
-                break;
-            case "TIE":
-                status.setText("Tie!");
-                break;
-            }
-            break;
+            turn = -1; // ensure that the game is over
+            reset.setVisible(true);
+            return true;
         case "CW":
         case "CCW":
             Marble[][] block = null;
@@ -413,6 +399,7 @@ public class Board extends JPanel {
         }
         advanceTurn(null);
         repaint();
+        return false;
     }
 
     /**

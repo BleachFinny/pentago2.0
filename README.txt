@@ -83,6 +83,3 @@ PennKey: ericzeng
   
   TextFields for login
   https://docs.oracle.com/javase/tutorial/uiswing/components/textfield.html
-  
-  Menu bar guide for GUI
-  https://docs.oracle.com/javase/tutorial/uiswing/components/menu.html

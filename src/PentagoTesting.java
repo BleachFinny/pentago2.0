@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import javax.swing.JButton;
 import javax.swing.JLabel;
 
 import org.junit.Before;
@@ -46,7 +47,7 @@ public class PentagoTesting {
         }
         player = new Player("p1", 2, 1, 29, 28);
         status = new JLabel("Testing");
-        board = new Board(player, status, connection, Color.WHITE);
+        board = new Board(player, status, new JButton(), connection, Color.WHITE);
     }
 
     @Test

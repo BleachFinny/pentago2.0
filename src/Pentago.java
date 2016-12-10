@@ -32,11 +32,8 @@ public class Pentago implements Runnable {
     // statistics file
     private String statistics = "stats.txt";
 
-    // game frame for the main game
+    // login frame for logging in
     final JFrame loginFrame = new JFrame("Pentago 2.0");
-
-    // game frame for the main game
-    final JFrame gameFrame = new JFrame("Pentago 2.0");
 
     // networking view model
     final JFrame netFrame = new JFrame("Pentago 2.0");
@@ -395,7 +392,6 @@ public class Pentago implements Runnable {
             public void actionPerformed(ActionEvent e) {
                 try {
                     connection = new Socket(ipField.getText().trim(), 21212);
-                    gameFrame.setVisible(true);
                     netFrame.setVisible(false);
                     status.setText("Host a game or connect to an IP address as client");
                     // opens the board once connection has been established
@@ -423,7 +419,6 @@ public class Pentago implements Runnable {
                             status.setText("Waiting for client...");
                             connection = server.accept();
                             status.setText("Host a game or connect to an IP address as client");
-                            gameFrame.setVisible(true);
                             netFrame.setVisible(false);
                             // opens the board once connection has been
                             // established
@@ -462,11 +457,16 @@ public class Pentago implements Runnable {
      *            is this player the host?
      */
     private void game(Color col) {
+        final JFrame gameFrame = new JFrame();
+
         // status/turn indicator
         final JLabel status = new JLabel("Welcome");
 
+        // reset button (action defined later)
+        final JButton reset = new JButton("Return");
+
         // Main playing area
-        final Board board = new Board(p1, status, connection, col);
+        final Board board = new Board(p1, status, reset, connection, col);
         gameFrame.add(board, BorderLayout.CENTER);
 
         // top panel
@@ -515,11 +515,9 @@ public class Pentago implements Runnable {
         s_panel.add(Box.createHorizontalGlue());
 
         // Return button
-        // TODO fix stackoverflow bug
-        final JButton reset = new JButton("Return");
         reset.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                gameFrame.setVisible(false);
+                gameFrame.dispose();
                 loginFrame.setVisible(true);
                 BufferedReader read = null;
                 BufferedWriter write = null;
@@ -629,9 +627,11 @@ public class Pentago implements Runnable {
             gameFrame.setTitle("Pentago 2.0 - " + p1.getName() + " - Black");
         }
 
+        reset.setVisible(false);
         gameFrame.setLocation(100, 100);
         gameFrame.pack();
         gameFrame.setResizable(false);
+        gameFrame.setVisible(true);
         gameFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
