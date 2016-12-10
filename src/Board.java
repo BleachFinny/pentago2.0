@@ -24,10 +24,10 @@ public class Board extends JPanel {
     // four 2-D arrays representing the four rotating blocks
     // starts with block1 in top left; top to bottom, then left to right
     // block 4 will be to bottom right
-    private Marble[][] block1 = new Marble[BLOCK_SIZE][BLOCK_SIZE];
-    private Marble[][] block2 = new Marble[BLOCK_SIZE][BLOCK_SIZE];
-    private Marble[][] block3 = new Marble[BLOCK_SIZE][BLOCK_SIZE];
-    private Marble[][] block4 = new Marble[BLOCK_SIZE][BLOCK_SIZE];
+    public final Marble[][] block1 = new Marble[BLOCK_SIZE][BLOCK_SIZE];
+    public final Marble[][] block2 = new Marble[BLOCK_SIZE][BLOCK_SIZE];
+    public final Marble[][] block3 = new Marble[BLOCK_SIZE][BLOCK_SIZE];
+    public final Marble[][] block4 = new Marble[BLOCK_SIZE][BLOCK_SIZE];
 
     // players that login;
     private final Player player;
@@ -94,10 +94,11 @@ public class Board extends JPanel {
                                     // OK
                                 }
                             }
+                            // TODO: debug
                             System.out.println("eek");
                             break;
                         }
-                        //process(command);
+                        process(command);
                     }
                 } catch (IOException e) {
                     if (turn != -1) {
@@ -106,7 +107,8 @@ public class Board extends JPanel {
                 }
             }
         };
-        new Thread(network).start();
+        Thread netThread = new Thread(network);
+        netThread.start();
 
         initBlock(block1);
         initBlock(block2);
@@ -122,12 +124,12 @@ public class Board extends JPanel {
      * 
      * @param block
      *            the block to be initialized
-     * 
      */
     private void initBlock(Marble[][] block) {
         JPanel grid = new JPanel();
         grid.setLayout(new GridLayout(BLOCK_SIZE * 2 + 1, BLOCK_SIZE * 2 + 1));
         grid.setFocusable(false);
+        grid.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1, true));
 
         for (int c = 0; c < BLOCK_SIZE * 2 + 1; c++) {
             for (int r = 0; r < BLOCK_SIZE * 2 + 1; r++) {
@@ -136,7 +138,7 @@ public class Board extends JPanel {
                     insertRigidSpace(grid);
                 } else {
                     // insert marble if both r and c are odd
-                    block[r / 2][c / 2] = new Marble(null, MARBLE_SIZE);
+                    block[r / 2][c / 2] = new Marble(null, MARBLE_SIZE - 2);
                     block[r / 2][c / 2].addMouseListener(new MouseAdapter() {
 
                         @Override
@@ -511,6 +513,39 @@ public class Board extends JPanel {
                 return checkWinStart(x, y, col, total);
             }
         }
+    }
+
+    /**
+     * Gets the specified block. Testing purposes only
+     * 
+     * @param i
+     *            the block number
+     * @return the block
+     */
+    public Marble[][] getBlock(int i) {
+        Marble[][] ret = new Marble[BLOCK_SIZE][BLOCK_SIZE];
+        Marble[][] block = null;
+        switch (i) {
+        case 1:
+            block = block1;
+            break;
+        case 2:
+            block = block2;
+            break;
+        case 3:
+            block = block3;
+            break;
+        case 4:
+            block = block4;
+            break;
+        }
+
+        for (int r = 0; r < BLOCK_SIZE; r++) {
+            for (int c = 0; c < BLOCK_SIZE; c++) {
+                ret[r][c] = new Marble(block[r][c].getColor(), block[r][c].getWidth());
+            }
+        }
+        return ret;
     }
 
     @Override

@@ -11,7 +11,7 @@ import javax.swing.JComponent;
  */
 public class Marble extends JComponent {
     private Color c;
-    private final int SIZE;
+    public final int SIZE;
 
     public Marble(Color color, int s) {
         setColor(color);
@@ -36,6 +36,14 @@ public class Marble extends JComponent {
      */
     public void setColor(Color color) {
         this.c = color;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this.getClass().isInstance(o)) {
+            return (c == ((Marble) o).getColor() && SIZE == ((Marble) o).SIZE);
+        }
+        return false;
     }
 
     @Override

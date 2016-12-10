@@ -30,7 +30,6 @@ public class Pentago implements Runnable {
     TreeMap<Player, String> users;
 
     // statistics file
-    // TODO: implement this
     private String statistics = "stats.txt";
 
     // game frame for the main game
@@ -82,12 +81,8 @@ public class Pentago implements Runnable {
 
         prompt.setLocation(200, 200);
         prompt.setSize(300, 100);
-        prompt.setResizable(true);
+        prompt.setResizable(false);
         prompt.setVisible(true);
-
-        // Start game
-        // TODO: fix login gui
-        // TODO: update stats properly/be able to check them
     }
 
     /**
@@ -146,7 +141,6 @@ public class Pentago implements Runnable {
         loginFrame.add(title);
 
         // text fields
-        // TODO add labels
         final JPanel loginPanel = new JPanel();
         loginPanel.setLayout(new BoxLayout(loginPanel, BoxLayout.Y_AXIS));
         final JTextField username = new JTextField();
@@ -273,8 +267,16 @@ public class Pentago implements Runnable {
                 subTitle.setText("Username/password registered, login to continue");
             }
         });
+        final JButton instructions = new JButton("Instructions");
+        instructions.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                displayInstructions();
+            }
+        });
         userButtons.add(loginButton);
         userButtons.add(createButton);
+        userButtons.add(instructions);
 
         loginFrame.add(loginPanel);
         loginFrame.add(userButtons);
@@ -331,6 +333,33 @@ public class Pentago implements Runnable {
         displayStats.setVisible(true);
         displayStats.setResizable(false);
         displayStats.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    }
+
+    /**
+     * Displays the instructions for this game
+     */
+    private void displayInstructions() {
+        final JFrame instructions = new JFrame("Instructions");
+        final JTextArea content = new JTextArea();
+        content.setEditable(false);
+        instructions.add(content);
+
+        content.setText(
+                "Pentago is played with two players, white and black as denoted by their marbles."
+                        + "\n"
+                        + "White starts by placing one marble on any open space (click), then rotating any one\n"
+                        + "of the four blocks that comprise the whole board. Then Black will do the same.\n"
+                        + "The goal is to get 5 in a row spanning across any number of blocks. This can be\n"
+                        + "done horizontaly, diagonally, or vertically.\n\n"
+                        + "For this game application, your player statistics will be stored in the file you\n"
+                        + "specified at the start. You must connect to an opponent via IP address (can be local,\n"
+                        + "but be careful not select the same statistics file!). Have fun!");
+
+        instructions.setLocation(200, 200);
+        instructions.pack();
+        instructions.setVisible(true);
+        instructions.setResizable(false);
+        instructions.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     }
 
     /**
