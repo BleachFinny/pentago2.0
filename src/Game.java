@@ -105,20 +105,8 @@ public class Game implements Runnable {
                 users.put(addMe, args[1]);
                 next = in.readLine();
             }
-        } catch (NumberFormatException e) {
-            final JLabel error = new JLabel("File formatting is wrong! Please correct " + statistics
-                    + " or contact the developer!");
-            loginFrame.add(error);
-            return;
-        } catch (FileNotFoundException e) {
-            final JLabel error = new JLabel(
-                    "statsitics file is missing! Please replace it or contact the developer!");
-            loginFrame.add(error);
-            return;
-        } catch (IOException e) {
-            final JLabel error = new JLabel(
-                    "Error in loading users! Please contact the developer!");
-            loginFrame.add(error);
+        } catch (Exception e) {
+            showLoginIssue(e);
             return;
         } finally {
             try {
@@ -287,6 +275,27 @@ public class Game implements Runnable {
         loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
+    private void showLoginIssue(Exception e) {
+        if (NumberFormatException.class.isInstance(e)) {
+            final JLabel error = new JLabel("File formatting is wrong! Please correct " + statistics
+                    + " or contact the developer!");
+            loginFrame.add(error);
+        } else if (FileNotFoundException.class.isInstance(e)) {
+            final JLabel error = new JLabel(
+                    "statsitics file is missing! Please replace it or contact the developer!");
+            loginFrame.add(error);
+        } else if (IOException.class.isInstance(e)) {
+            final JLabel error = new JLabel(
+                    "Error in loading users! Please contact the developer!");
+            loginFrame.add(error);
+        }
+        loginFrame.setLocation(100, 100);
+        loginFrame.setSize(500, 130);
+        loginFrame.setResizable(false);
+        loginFrame.setVisible(true);
+        loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
+
     /**
      * Displays the statistics of the current player reference by p1
      */
@@ -318,7 +327,7 @@ public class Game implements Runnable {
         categories.add(marbs);
         values.add(marbval);
 
-        final JLabel blocks = new JLabel("Blocks Tunred:");
+        final JLabel blocks = new JLabel("Blocks Turned:");
         final JLabel bval = new JLabel(p1.getBlockTurns() + "");
         categories.add(blocks);
         values.add(bval);

@@ -93,15 +93,10 @@ public class Board extends JPanel {
                                 reset.setVisible(true);
                                 // end game
                                 turn = -1;
-                                connection.close();
-                                connection = null;
                             }
                             break;
                         }
                         if (process(command)) {
-                            // stop thread when opponent confirms end game
-                            connection.close();
-                            connection = null;
                             break;
                         }
                     }
@@ -258,12 +253,12 @@ public class Board extends JPanel {
 
             switch (direction) {
             case "CW":
-                RotateButton.rotateCW(block);
+                rotateCW(block);
                 player.incBlockTurns();
                 write.println(direction + " " + b);
                 break;
             case "CCW":
-                RotateButton.rotateCCW(block);
+                rotateCCW(block);
                 player.incBlockTurns();
                 write.println(direction + " " + b);
                 break;
@@ -288,6 +283,48 @@ public class Board extends JPanel {
      */
     private void insertRigidSpace(JPanel grid) {
         grid.add(Box.createRigidArea(new Dimension(MARBLE_SIZE, MARBLE_SIZE)));
+    }
+
+    /**
+     * Rotate a block 90 degrees clockwise.
+     *
+     * @param block
+     *            to be rotated
+     */
+    public static void rotateCW(Marble[][] block) {
+        Color[][] temp = new Color[block.length][block[0].length];
+        for (int x = 0; x < block.length; x++) {
+            for (int y = 0; y < block[0].length; y++) {
+                temp[x][y] = block[x][y].getColor();
+            }
+        }
+
+        for (int x = 0; x < block.length; x++) {
+            for (int y = 0; y < block[0].length; y++) {
+                block[block[0].length - y - 1][x].setColor(temp[x][y]);
+            }
+        }
+    }
+
+    /**
+     * Rotate a block 90 degrees counter-clockwise.
+     *
+     * @param block
+     *            to be rotated
+     */
+    public static void rotateCCW(Marble[][] block) {
+        Color[][] temp = new Color[block.length][block[0].length];
+        for (int x = 0; x < block.length; x++) {
+            for (int y = 0; y < block[0].length; y++) {
+                temp[x][y] = block[x][y].getColor();
+            }
+        }
+
+        for (int x = 0; x < block.length; x++) {
+            for (int y = 0; y < block[0].length; y++) {
+                block[y][block.length - x - 1].setColor(temp[x][y]);
+            }
+        }
     }
 
     /**
@@ -369,9 +406,9 @@ public class Board extends JPanel {
                 break;
             }
             if (cmds[0].equals("CW")) {
-                RotateButton.rotateCW(block);
+                rotateCW(block);
             } else {
-                RotateButton.rotateCCW(block);
+                rotateCCW(block);
             }
             break;
         case "WHITE":
