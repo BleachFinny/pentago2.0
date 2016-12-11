@@ -153,7 +153,7 @@ public class Board extends JPanel {
                                     m.setColor(color);
                                     player.incMarblePlacements();
                                     location = findBlockXY(m);
-                                    if (location.equals("-1")) {
+                                    if (location.equals("!")) {
                                         status.setText("COMM ERROR");
                                     } else {
                                         write.println("WHITE " + location);
@@ -164,7 +164,7 @@ public class Board extends JPanel {
                                     m.setColor(color);
                                     player.incMarblePlacements();
                                     location = findBlockXY(m);
-                                    if (location.equals("-1")) {
+                                    if (location.equals("!")) {
                                         status.setText("COMM ERROR");
                                     } else {
                                         write.println("BLACK " + location);
@@ -269,6 +269,7 @@ public class Board extends JPanel {
                 break;
             default:
                 System.out.println("ERROR IN ROTATION: CHECK ROTATION TAGS");
+                return false;
             }
             repaint();
             advanceTurn(null);
@@ -297,7 +298,7 @@ public class Board extends JPanel {
      * @param c
      *            color of the Winner
      */
-    private void advanceTurn(Color c) {
+    public void advanceTurn(Color c) {
         turn++;
         switch (turn % 4) {
         case 0:
@@ -416,7 +417,7 @@ public class Board extends JPanel {
      *            the whole board representation
      * @return if col wins or not
      */
-    private boolean checkWinStart(int x, int y, Color col, Marble[][] total) {
+    public boolean checkWinStart(int x, int y, Color col, Marble[][] total) {
         return (checkWinRec(x + 1, y - 1, 0, "NE", col, total)
                 || checkWinRec(x + 1, y, 0, "E", col, total)
                 || checkWinRec(x + 1, y + 1, 0, "SE", col, total)
@@ -443,7 +444,7 @@ public class Board extends JPanel {
      *            the whole board representation
      * @return if col wins or not
      */
-    private boolean checkWinRec(int x, int y, int inARow, String direction, Color col,
+    public boolean checkWinRec(int x, int y, int inARow, String direction, Color col,
             Marble[][] total) {
         if (inARow >= 5) {
             return true;
@@ -538,7 +539,6 @@ public class Board extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.setColor(Color.MAGENTA);
 
         // win checking
         Marble[][] total = totalBlock();

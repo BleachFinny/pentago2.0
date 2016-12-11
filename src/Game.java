@@ -18,7 +18,7 @@ import javax.swing.*;
 /**
  * Game Main class that specifies the frame and widgets of the GUI
  */
-public class Pentago implements Runnable {
+public class Game implements Runnable {
 
     // Networking socket and read/write
     Socket connection;
@@ -641,6 +641,6 @@ public class Pentago implements Runnable {
      * this in the final submission of your game.
      */
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Pentago());
+        SwingUtilities.invokeLater(new Game());
     }
 }
