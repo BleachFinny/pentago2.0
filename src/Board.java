@@ -75,8 +75,7 @@ public class Board extends JPanel {
         }
         turn = -1; // when advanceTurn(null) is called, the game starts
 
-        setBackground(Color.GRAY);
-        setLayout(new GridLayout(2, 2));
+        setLayout(new GridLayout(1, 1));
         setFocusable(false); // default: focus on marbles instead
 
         // networking read thread setup
@@ -108,37 +107,44 @@ public class Board extends JPanel {
         Thread netThread = new Thread(network);
         netThread.start();
 
-        initBlock(block1);
-        initBlock(block2);
-        initBlock(block3);
-        initBlock(block4);
+        initBlocks();
         advanceTurn(null);
     }
 
     /**
-     * Initializes a block by surrounding each element with a rigid spacer of
-     * the same size (BLOCK_SIZE). Marbles will be initialized to null color,
+     * Initializes the four blocks with rigid spacers in between which are the
+     * same size (BLOCK_SIZE). Marbles will be initialized to null color,
      * representing an empty space where no player has placed a real marble yet
-     * 
-     * @param block
-     *            the block to be initialized
      */
-    private void initBlock(Marble[][] block) {
-        JPanel grid = new JPanel();
-        grid.setLayout(new GridLayout(BLOCK_SIZE * 2 + 1, BLOCK_SIZE * 2 + 1));
+    private void initBlocks() {
+        JPanel grid = new JPanel() ;
+//            @Override
+//            public void paintComponent(Graphics g) {
+//                super.paintComponent(g);
+//                g.drawLine(SIZE / 2, MARBLE_SIZE / 2, SIZE / 2, SIZE - MARBLE_SIZE / 2);
+//                g.drawLine(MARBLE_SIZE / 2, SIZE / 2, SIZE - MARBLE_SIZE / 2, SIZE / 2);
+//                g.drawRect(MARBLE_SIZE / 2, MARBLE_SIZE / 2, SIZE - MARBLE_SIZE,
+//                        SIZE - MARBLE_SIZE);
+//            }
+//        };
+        grid.setLayout(new GridLayout(BLOCK_SIZE * 4 + 1, BLOCK_SIZE * 4 + 1));
         grid.setFocusable(false);
-        grid.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1, true));
-
-        for (int c = 0; c < BLOCK_SIZE * 2 + 1; c++) {
-            for (int r = 0; r < BLOCK_SIZE * 2 + 1; r++) {
-                // insert spacer if row or column is even
+        for (int c = 0; c < BLOCK_SIZE * 4 + 1; c++) {
+            for (int r = 0; r < BLOCK_SIZE * 4 + 1; r++) {
                 if (c % 2 == 0 || r % 2 == 0) {
                     insertRigidSpace(grid);
                 } else {
-                    // insert marble if both r and c are odd
-                    block[r / 2][c / 2] = new Marble(null, MARBLE_SIZE - 2);
-                    block[r / 2][c / 2].addMouseListener(new MouseAdapter() {
-
+                    Marble marb = new Marble(null, MARBLE_SIZE - 2);
+                    if (r < BLOCK_SIZE * 2 && c < BLOCK_SIZE * 2) {
+                        block1[r / 2][c / 2] = marb;
+                    } else if (r > BLOCK_SIZE * 2 && c < BLOCK_SIZE * 2) {
+                        block2[r / 2 - BLOCK_SIZE][c / 2] = marb;
+                    } else if (r < BLOCK_SIZE * 2 && c > BLOCK_SIZE * 2) {
+                        block3[r / 2][c / 2 - BLOCK_SIZE] = marb;
+                    } else if (r > BLOCK_SIZE * 2 && c > BLOCK_SIZE * 2) {
+                        block4[r / 2 - BLOCK_SIZE][c / 2 - BLOCK_SIZE] = marb;
+                    }
+                    marb.addMouseListener(new MouseAdapter() {
                         @Override
                         public void mouseClicked(MouseEvent e) {
                             Marble m = (Marble) e.getComponent();
@@ -171,11 +177,11 @@ public class Board extends JPanel {
                             }
                         }
                     });
-                    grid.add(block[r / 2][c / 2]); // add marble to block grid
+                    grid.add(marb); // add marble to blocks' grid
                 }
             }
         }
-        add(grid); // add block grid to board
+        add(grid); // add blocks' grid to board
     }
 
     /**
@@ -204,7 +210,7 @@ public class Board extends JPanel {
     }
 
     /**
-     * Combines the four block into one large block
+     * Combines the four block into one large block. Used for win testing
      * 
      * @return the combined Marble array
      */
@@ -585,7 +591,7 @@ public class Board extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-
+        System.out.println("ran!");
         // win checking
         Marble[][] total = totalBlock();
         boolean whiteWin = checkWinRec(0, 0, 0, "NONE", Color.WHITE, total);
