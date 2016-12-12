@@ -133,7 +133,7 @@ public class Board extends JPanel {
                 if (c % 2 == 0 || r % 2 == 0) {
                     insertRigidSpace(grid);
                 } else {
-                    Marble marb = new Marble(null, MARBLE_SIZE);
+                    Marble marb = new Marble(null, MARBLE_SIZE - 1);
                     if (r < BLOCK_SIZE * 2 && c < BLOCK_SIZE * 2) {
                         block1[r / 2][c / 2] = marb;
                     } else if (r > BLOCK_SIZE * 2 && c < BLOCK_SIZE * 2) {
