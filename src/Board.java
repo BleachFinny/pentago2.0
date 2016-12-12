@@ -180,7 +180,7 @@ public class Board extends JPanel {
                 }
             }
         }
-        add(grid, BorderLayout.CENTER); // add blocks' grid to board
+        add(grid); // add blocks' grid to board
     }
 
     /**
