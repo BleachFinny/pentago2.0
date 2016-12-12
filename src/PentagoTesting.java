@@ -212,4 +212,13 @@ public class PentagoTesting {
 
         assertTrue(board.checkWinRec(0, 0, 0, "NONE", Color.WHITE, totalBlock()));
     }
+
+    @Test
+    public void tieAllSpacesFilled() {
+        for (int i = 0; i < 72; i++) {
+            board.advanceTurn(null);
+        }
+
+        assertEquals("No more possible moves. Tie!", status.getText());
+    }
 }

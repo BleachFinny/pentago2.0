@@ -337,6 +337,15 @@ public class Board extends JPanel {
      */
     public void advanceTurn(Color c) {
         turn++;
+        // special case: all positions on board are filled
+        if (turn == 72) {
+            status.setText("No more possible moves. Tie!");
+            player.incGamesLost();
+            turn = -1;
+            write.print("WIN");
+            return;
+        }
+
         switch (turn % 4) {
         case 0:
             status.setText("Player 1 (White) place a marble");
