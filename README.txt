@@ -62,6 +62,7 @@ PennKey: ericzeng
 
 - Provide an overview of each of the classes in your code, and what their
   function is in the overall game.
+  
   Game.java: Sets up the statistics file, login, and networking. It contains mostly GUI code as the back-end for each
   element is fairly easy to maintain. The game board's GUI is modeled here, but its state is handled by a Board object.
   
@@ -77,14 +78,24 @@ PennKey: ericzeng
   the diameter of the marble, this will be uniform for each marble in a given board. Equality is determined by having the
   same size and Color.
 
-
 - Were there any significant stumbling blocks while you were implementing your
   game (related to your design, or otherwise)?
-
+  
+  Trying to decide where certain operations should go was difficult. Separating the GUI and model required a lot of thinking
+  and planning beforehand. Manipulating the colors of marble was particularly hard as I had to realize that moving the
+  actual JComponent marbles would be far too inefficient. Additionally, the win checking process took a lot of code and drawing
+  to ensure my algorithm accounted for every possible win condition. Networking and keeping the clients in sync was also quite
+  tricky without the use of a 3rd party central server. There were many bugs in each of these aforementioned areas, but
+  persistent work and consistent commenting helped keep my code organized. 
 
 - Evaluate your design. Is there a good separation of functionality? How well is
   private state encapsulated? What would you refactor, if given the chance?
-
+  
+  The design, in my opinion, is OK but not something I am proud of. I should have thought to separate the model and GUI better
+  so it would be easier to test my implementations. The private state is not very well encapsulated due to this as one could
+  modify a local board and ruin the game for the other player. If I were to redo this, I would move the Board GUI to another file
+  and have Board only deal with back-end modeling. I would also adjust the layout of the board so it has even spacing between marbles
+  across blocks.
 
 
 ========================
