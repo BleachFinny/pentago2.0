@@ -19,7 +19,7 @@ public class Board extends JPanel {
     // constants
     public static final int SIZE = 700;
     public static final int BLOCK_SIZE = 3; // note: measured in # of marbles
-    public static final int MARBLE_SIZE = SIZE / (BLOCK_SIZE * 4 + 2);
+    public static final int MARBLE_SIZE = SIZE / (BLOCK_SIZE * 4 + 1);
 
     // four 2-D arrays representing the four rotating blocks
     // starts with block1 in top left; top to bottom, then left to right
@@ -75,7 +75,6 @@ public class Board extends JPanel {
         }
         turn = -1; // when advanceTurn(null) is called, the game starts
 
-        setLayout(new GridLayout(1, 1));
         setFocusable(false); // default: focus on marbles instead
 
         // networking read thread setup
@@ -117,16 +116,16 @@ public class Board extends JPanel {
      * representing an empty space where no player has placed a real marble yet
      */
     private void initBlocks() {
-        JPanel grid = new JPanel() ;
-//            @Override
-//            public void paintComponent(Graphics g) {
-//                super.paintComponent(g);
-//                g.drawLine(SIZE / 2, MARBLE_SIZE / 2, SIZE / 2, SIZE - MARBLE_SIZE / 2);
-//                g.drawLine(MARBLE_SIZE / 2, SIZE / 2, SIZE - MARBLE_SIZE / 2, SIZE / 2);
-//                g.drawRect(MARBLE_SIZE / 2, MARBLE_SIZE / 2, SIZE - MARBLE_SIZE,
-//                        SIZE - MARBLE_SIZE);
-//            }
-//        };
+        JPanel grid = new JPanel() {
+            @Override
+            public void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.drawLine(SIZE / 2, MARBLE_SIZE / 2, SIZE / 2, SIZE - MARBLE_SIZE / 2);
+                g.drawLine(MARBLE_SIZE / 2, SIZE / 2, SIZE - MARBLE_SIZE / 2, SIZE / 2);
+                g.drawRect(MARBLE_SIZE / 2, MARBLE_SIZE / 2, SIZE - MARBLE_SIZE,
+                        SIZE - MARBLE_SIZE);
+            }
+        };
         grid.setLayout(new GridLayout(BLOCK_SIZE * 4 + 1, BLOCK_SIZE * 4 + 1));
         grid.setFocusable(false);
         for (int c = 0; c < BLOCK_SIZE * 4 + 1; c++) {
@@ -134,7 +133,7 @@ public class Board extends JPanel {
                 if (c % 2 == 0 || r % 2 == 0) {
                     insertRigidSpace(grid);
                 } else {
-                    Marble marb = new Marble(null, MARBLE_SIZE - 2);
+                    Marble marb = new Marble(null, MARBLE_SIZE);
                     if (r < BLOCK_SIZE * 2 && c < BLOCK_SIZE * 2) {
                         block1[r / 2][c / 2] = marb;
                     } else if (r > BLOCK_SIZE * 2 && c < BLOCK_SIZE * 2) {
@@ -181,7 +180,7 @@ public class Board extends JPanel {
                 }
             }
         }
-        add(grid); // add blocks' grid to board
+        add(grid, BorderLayout.CENTER); // add blocks' grid to board
     }
 
     /**
@@ -591,7 +590,7 @@ public class Board extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        System.out.println("ran!");
+
         // win checking
         Marble[][] total = totalBlock();
         boolean whiteWin = checkWinRec(0, 0, 0, "NONE", Color.WHITE, total);
